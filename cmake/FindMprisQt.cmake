@@ -1,36 +1,20 @@
-# - Try to find mpris-qt5
-# Once done, this will define
-#
-#  MPRISQT_FOUND - system has DBus
-#  MPRISQT_INCLUDE_DIRS - the DBus include directories
-#  MPRISQT_LIBRARIES - link these to use DBus
+include(FindPackageHandleStandardArgs)
 
-FIND_PACKAGE(PkgConfig)
-PKG_CHECK_MODULES(PC_MPRISQT QUIET mpris-qt5)
+find_library(MPRISQT_LIBRARY 
+	NAMES mprisqt)
 
-FIND_LIBRARY(MPRISQT_LIBRARIES
-    NAMES mpris-qt5
-    HINTS ${PC_MPRISQT_LIBDIR}
-          ${PC_MPRISQT_LIBRARY_DIRS}
-)
+find_path(MPRISQT_INCLUDE_DIR 
+	NAMES MprisQt/mprisqt.h)
 
-FIND_PATH(MPRIS_INCLUDE_DIR
-    NAMES MprisQt/mpris.h
-    HINTS ${PC_MPRISQT_INCLUDEDIR}
-          ${PC_MPRISQT_INCLUDE_DIRS}
-)
+find_package_handle_standard_args(MprisQt REQUIRED_VARS MPRISQT_LIBRARY MPRISQT_INCLUDE_DIR)
 
-GET_FILENAME_COMPONENT(_MPRISQT_LIBRARY_DIR ${MPRISQT_LIBRARIES} PATH)
-FIND_PATH(MPRISQT_INCLUDE_DIR
-    NAMES MprisQt/mprisqt.h
-    HINTS ${PC_MPRISQT_INCLUDEDIR}
-	  ${PC_MPRISQT_INCLUDE_DIRS}
-          ${_MPRISQT_LIBRARY_DIR}
-          ${MPRISQT_INCLUDE_DIR}
-    PATH_SUFFIXES include
-)
+if (MPRISQT_FOUND)
+	mark_as_advanced(MPRISQT_INCLUDE_DIR)
+	mark_as_advanced(MPRISQT_LIBRARY)
+endif()
 
-SET(MPRISQT_INCLUDE_DIRS ${MPRISQT_INCLUDE_DIR} ${MPRIS_INCLUDE_DIR})
-
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(MprisQt REQUIRED_VARS MPRISQT_INCLUDE_DIRS MPRISQT_LIBRARIES)
+if (MPRISQT_FOUND AND NOT TARGET MprisQt::MprisQt)
+	add_library(MprisQt::MprisQt IMPORTED)
+	set_property(TARGET MprisQt::MprisQt PROPERTY IMPORTED_LOCATION ${MPRISQT_LIBRARY})
+	target_include_directories(MprisQt::MprisQt INTERFACE ${MPRISQT_INCLUDE_DIR})
+endif()
